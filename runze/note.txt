@@ -1,0 +1,99 @@
+如何加入别人的仓库？
+1.打开终端
+2.复制命令到终端
+    $ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+3.一路回车
+	Generating public/private rsa key pair.   
+	Enter a file in which to save the key (/home/you/.ssh/id_rsa): [Press enter]
+4.直到输入密码
+	Enter passphrase (empty for no passphrase):
+	Enter same passphrase again:
+5.检查是否生成SSH密钥
+	eval "$(ssh-agent -s)"
+	Agent pid 59566
+6.查看生成的.ssh文件夹下有什么
+	$ ls ~/.ssh
+7.用vim或者cat命令打开id_rsa.pub文档并将里边的内容复制下来
+	$ cat id_rsa.pub
+8.进入网址https://github.com/settings/keys	进入New SSH Key链接，Title设置为邮箱，将第7步复制下来的内容，粘贴到Key对话框中
+然后验证一下Key
+在ternimal下输入命令：
+
+　　ssh -T git@github.com
+
+　　提示：Hi xxx! You've successfully authenticated, but GitHub does not provide shell  access. 
+9.然后进入网址https://github.com/timidsmile/HelloWorld	点击中间绿色按钮Clone or download	将网址复制下来
+10.然后回到你的终端，在你常用的随便一个目录里里创建一个目录，然后进入
+	mkdir github
+	cd github
+	git clone git"第9步中复制的网址"
+11.执行
+	git branch -r
+   查看远程下有哪些分支
+   当然，你也可以自己创建一个分支
+	git branch xxx
+12.执行
+	git checkout xxx
+   进入分支
+13.git status
+	可以查看现在在哪个分支上
+14.在本地创建一个文件
+	touch test.txt
+15.把当前目录下的改动添加到git仓库中
+	git add test.txt
+16.提交到本地仓库中，别的仓库看不到
+	git commit -m"测试文件"
+17.提交到远程分支，让别的仓库也看见
+	git push origin xxx
+   然后，你的文件，别的仓库也能看到了
+
+
+注意：
+1.在执行第16步之前，先执行
+	git config --global user.email "you@example.com"
+	git config --global user.name "Your name"
+2.执行完第17步后，提示输入用户名和密码，这里的用户名和密码是你的github的账号和密码
+
+
+如何创建自己的仓库？
+1.同上一个操作前五步
+2.ssh-add ~/.ssh/id_rsa
+
+　　这时候应该会提示：
+
+　　Identity added: ...（这里是一些ssh key文件路径的信息）
+
+　　（注意）如果出现错误提示：
+
+　　Could not open a connection to your authentication agent.
+
+　　请执行命令：eval `ssh-agent -s`后继续执行命令 ssh-add ~/.ssh/id_rsa，这时候一般没问题啦。
+3.然后执行上一个操作的6-10步
+4.直接在终端输入
+git clone 网址
+这样，你就有了一个自己的仓库了
+
+
+怎么进入一个分支并且在这个分支上提交？
+例如：
+	在分支下创建一个文件	touch test.txt
+	vim test.txt随便添加点内容保存
+
+	git add test.txt	然后将本地修改添加到git仓库中
+	git commit -m "新测试"	提交到本地git仓库中
+	git push origin 当前分支	最后将改动提交到远程分支
+	这时候你可能看到一个错误:
+		error: 无法推送一些引用到 'git@github.com:515798163/GitNote.git'
+		提示：更新被拒绝，因为您当前分支的最新提交落后于其对应的远程分支。
+		提示：再次推送前，先与远程变更合并（如 'git pull ...'）。详见
+		提示：'git push --help' 中的 'Note about fast-forwards' 小节。
+
+	这是因为很多人在一个分支上更改，你更改代码提交前，有人已经提交过了，你本地的分支落后于远程分支，所以要git pull一下，更新本地代码，重新改正修改要改动的文件。然后重复前几步，就可以成功了。
+
+小技巧：
+	你在当前分支更改了本地文件，可以在add之前，先 git diff 一下，看看你将要提交的是什么。但是有时候你会发现diff之后，并没有出现什么，只有一个单词END,这时候，：wq 退出来后 git status 看一下，有什么提示。如果你用的是zsh，就会发现，中间有一行绿色的字，那就说明，你已经将改动提交到本地仓库了，与当前没有什么区别，所以，就diff不出什么东西了。如果diff之后，出现了你刚刚改动的东西，退出来，git status一下，这时，你会看到中间的字变成了红色，这时候，你就可以执行以上操作，提交到远程分支了。
+
+如何将分支整合呢？
+举个例子，你在test分支，写了段代码，然后切换到master分支，咦？我的代码呢？这是因为代码在test远程分支上，master分支当然看不到了。这时候，就需要整合分支内容了。很简单。两行命令：
+	git checkout master
+	git merge develop
