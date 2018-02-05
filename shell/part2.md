@@ -23,7 +23,7 @@ sed -n '/825809521443074059/ p' lineID
  sed -e '/user_id/d' userID
   
 # 对 GitNote/shell/testData1/logs 文件，删除每行 & 及其后面的所有内容。ex ： 653022934034081923&xxx  期望得到 653022934034081923
-sed 's/\(.*&\).*/\1/' logs
+sed 's/&[^,]*$//g' logs
 
 ```
 
