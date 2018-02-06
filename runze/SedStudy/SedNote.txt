@@ -1,0 +1,159 @@
+1.sed会话中退出，使用组合键ctrl-D (^D)
+
+2.sed的基本命令和他的使用方法
+	sed [-n] [-e] 'command(s)' files
+	sed [-n] -f scriptfile files
+	第一种是在命令行中使用单引号制定要执行的命令，第二种方式则指定了包含sed命令的脚本文件。二者可同时使用。
+    例：在命令行中使用单引号制定要执行的命令
+	sed -e '1d' -e '2d' -e '5d' books.txt
+	删除指定行的第1,2,5行，不改变源文件
+    例：指定了包含sed命令的脚本文件
+	echo -e "1d\n2d\n5d" > commands.txt
+	sed -f commands.txt books.txt
+
+3.sed的标准选项
+	-n	默认情况下，模式空间内的内容在处理完之后将会打印到标准输出，此选项是阻止该行为。
+	-e	指定要执行的命令，使用该参数，可以指定多个命令。
+	-f	指定包含要执行的命令的脚本文件
+
+4.GNU选项（这些选项是GNU规范定义的，可能对于某些版本的sed并不支持）
+	-i	该选项用于对当前文件进行编辑，如果没有备份原始文件，将会覆盖原始文件。
+	-r	该选项将启用扩展的正则表达式
+	-z	默认情况下，sed对每一行使用换行符分割，如果提供了该选项，它将使用NULL字符分割行
+
+5.循环
+
+6.分支
+
+7.模式空间和保持空间
+
+8.行寻址
+	两种都采用相同的语法格式：
+	[adress]command
+	（1）以数字形式表示的行区间
+	例1：单行操作
+		sed -n '3p' books.txt
+		对第三行进行操作
+	例2：让sed来输出某些行
+		sed -n '2,5 p' books.txt
+		输出2-5行的内容
+	例3：特殊字符$代表了文件的最后一行
+		sed -n '$ p' books.txt
+		输出文件的最后一行
+		sed -n '2,$ p' books.txt
+		输出文件第2行到最后一行的内容
+	例4：（+）操作符。M,+n将会打印从第M行开始的下n行
+		sed -n '2,+4 p' books.txt
+		打印从第2行开始的下4行也就是打印2到4行
+	例5：（~）操作符。M~N将会从M行开始处理每N行
+		sed -n '1~2 p' books.txt
+		打印从第一行开始，随后每两行打印一次，也就是打印1,3,5……行
+	（2）以文本模式来过滤行
+	格式:
+		/pattern/command
+		必须用斜杠将要制定的pattern封起来。sed编辑器会将该命令作用到包含制定文本模式的行上。
+	例1：sed -n '/Paulo/ p' books.txt
+		输出所有作者为Paulo Coelho的书籍
+	例2：模式匹配也可以与数字形式的寻址同时使用。
+		sed -n '/Alchemist/,5 p' books.txt
+		从第一次匹配到Alchemist开始输出，知道第5行为止
+	例3：（,）操作符制定匹配多个匹配的模式。
+		sed -n '/Two/,/Pilgrimage/ p' books.txt
+		输出Two和Pilgrimage之间的所有行
+	例4：与数字方式的行寻址类似，可以使用+操作符。
+		sed -n '/Two/,+4 p' books.txt
+		输出从第一次出现Two位置开始输出接下来的四行
+	例5：不适用（~）运算符
+
+9.保持空间
+	h	将模式空间复制到保持空间
+	H	将模式空间追加到保持空间
+	g	将保持空间复制到模式空间
+	G	将保持空间追加到模式空间
+	x	交换模式空间和保持空间的内容
+
+10.基本命令
+	（1）删除命令d
+		格式如下：
+			[address1[,address2]]d
+		address1和address2是开始和截止地址，它们可以是行号或者字符串匹配模式，这两种地址都是可选的。不改变源文件
+	例1：sed 'd' books.txt
+		没有输出内容。默认情况下，sed将会对每一行执行删除操作。
+	例2：sed '4d' books.txt
+		只删除第4行
+	例3：（,）操作符。
+		sed '2,4 d' books.txt
+		删除第2行到第4行的内容
+	例4：模式匹配作为地址。
+		sed '/Paulo Coelho/ d' books.txt
+		删除所有作者为Paulo Coelho的书籍
+	例5：sed '/Storm/,/Fellowship/d' books.txt
+		注意：是两个第一次。删除第一次出现Storm和第一次出现Fellowship的行及其中间的行
+	例6：（+）运算符及（~）适用
+
+	（2）文本写入命令
+		格式如下：
+			[address1[,address2]]w file
+		与delete类似。file指的是存储文件内容的文件名。使用file操作符时要小心，当提供的文件名但是文件名不存在的时候它会自动创建，如果已经存在的话则会覆盖原文件的内容。
+		下列命令会创建文件books.txt的副本，在w和file之间只能有一个空格
+			sed -n 'w books.bak' books.txt
+	例1：选择存储
+		sed -n '2~2 w junk.txt' books.txt
+		将books.txt中的偶数行存储到junk.txt中
+	例2：多命令多文件
+		sed -n -e '/Martin/ w Martin.txt' -e '/Paulo/ w Paulo.txt' books.txt
+		将书的作者独立到各自文件
+	（3） 追加命令a
+		格式如下：
+			[address]a\
+			Append text
+		adress指的是行号，a是append追加命令，剩余部分为追加的文本。不改变原文件。
+	例1：在某一行后追加文本
+		sed '4 a 7) Adultry,Paulo Coelho,234' books.txt
+		在第4行后追加文本。
+	例2：在文本的结尾处插入一行文本，使用$作为地址
+		sed '$ a 7) Adultry,Paulo Coelho,234' books.txt
+		在结尾出插入文本。
+	例3：除了行号，也可以使用文本模式指定地址。
+		sed '/Fellowship/ a 7)zhuijia' books.txt
+		注意：是在所有出现Fellowship的行的后面追加内容。
+	（4）行替换命令c
+		格式如下：
+			[adress1[,adress2]]c\
+			Replace text
+	例1：替换单行内容
+		sed '3 c 3)beitihuan' books.txt
+		替换第三行的内容
+	例2：文本模式指定地址
+		sed '/Fellowship/ c 3)tihuan' books.txt
+		注意：是替换所有出现指定文本的行。
+	例3：多行替换
+		sed '4,6 c 3)tihuan' books.txt
+		实现将第4-6行的内容替换为单行
+	（5）插入命令i
+		格式如下：
+			[adress]i\
+			Insert text
+	例1：单行插入
+		sed '4 i 7)charu' books.txt
+		在第4行前插入新的一行\
+	例2：多行插入
+		sed '4,7 i 7)charu' books.txt
+		注意：在4到7行每一行前都插入指定内容。
+	例3：文本模式插入
+		sed '/Fellowship/ i 7)charu' books.txt
+		注意：在所有出现指定文本的行的前一行插入一行指定内容
+	（6）转换命令y
+		格式如下：
+			[adress]y/inchars/outchars/
+		转换命令会对inchars和outchars值进行一对一映射。这个映射过程一直持续到处理完指定字符，如果inchars和outchars的长度不同，则sed编辑器会产生一条错误信息。
+		例如：sed '1,2 y/35/AB/' Paulo.txt
+		注意：字符串长度必须相同，y前面的空格可有可无，但y后面必须不能有空格，否则报错。
+	（7）输出隐藏字符命令l
+		格式如下：
+			[adress1[,adress2]]l
+			[adress1[,adress2]]l [len]
+		我们不能通过直接观察区分出单词是通过空格还是tab进行分隔的。但是sed可以做到这些。
+	例1：sed -n 'l' junk.txt
+	例2：实现文本按照指定的宽度换行
+		sed -n 'l 25' books.txt
