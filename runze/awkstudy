@@ -1,0 +1,45 @@
+1.基本语法
+	awk '{pattern+action}' filenames
+2.实例
+	last -n 5 | awk '{print $1}'
+	awk的工作流程：读入以'\n'换行符划分的每一条记录，然后再根据指定或默认的域分隔符划分区域，$n是位置变量，代表第几片区域。默认的分隔符是“空格”或“[tab]”键。$0表示所有域。
+3.指定分隔符
+	cat /etc/passwd | awk -F ':' '{print $1"\t"$7}'
+	-F指定域分隔符为':'
+	\t是制表符，表示账户域shell之间以tab键分割
+4.添加“页眉”“页脚”
+	cat /etc/passwd | awk -F ':' 'BEGIN {print "name,shell"} {print $1","$7} END {print "blue,/bin/nosh"}'
+	工作流程：先执行BEGIN,然后读取文件，读入有/n换行符为一条记录，然后将记录按指定的域分隔符划分区域。然后打印指定域。接着读入第二条记录……直到所有的记录都读完。最后执行END操作。
+5.搜索带有某关键字的所有行
+	awk -F ':' '/root/' /etc/passwd
+6.搜索带某关键字的所有行，并打印指定域
+	awk -F ':' '/root/{print $7}' /etc/passwd
+7.awk内置变量
+	ARGC               命令行参数个数
+	ARGV               命令行参数排列
+	ENVIRON            支持队列中系统环境变量的使用
+	FILENAME           awk浏览的文件名
+	FNR                浏览文件的记录数
+	FS                 设置输入域分隔符，等价于命令行 -F选项
+	NF                 浏览记录的域的个数
+	NR                 已读的记录数
+	OFS                输出域分隔符
+	ORS                输出记录分隔符
+	RS                 控制记录分隔符
+8.awk -F ':' '{print NR $7}' /etc/passwd
+9.printf不换行打印，print换行打印
+10.自定义变量
+	awk -F ':' '{count++;print $1;} END {print count}' /etc/passwd
+	这里的count是自定义变量。之前的action{}里都只有一个print，其实print只是一个语句，而action{}可以有多个语句，以';'号隔开。
+注意：count没有初始化，虽然默认是0，但妥当的做法还是最开始给count赋一个初始值。
+11.统计某文件夹下的文件占用的字节数
+	ls -l | awk 'BEGIN {size=0} {size=size+$5} END{print "size is "size}'
+12.条件语句
+	ls -l | awk 'BEGIN {SIZE=0} {if($5!=4096){size=size+$5;}} END {print "size is "size}'
+	过滤掉4096大小的文件夹
+13.循环语句
+	同if语句一样，借鉴于C语言，支持while、do/while、for、break、continue，这些关键字的语义和C语言中的语义完全相同
+14.数组
+	awk -F ':' 'BEGIN {count=0;} {name[count++] = $1;}; END{for (i = 0; i < NR; i++) print i, name[i]}' /etc/passwd
+15.模式
+	
