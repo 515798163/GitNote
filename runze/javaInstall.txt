@@ -1,0 +1,16 @@
+命令行安装并配置jdk
+1.下载安装jdk
+	sudo apt-get install openjdk-8-jdk
+2.然后配置环境变量，这里选择/etc/profilew文件配置
+	sudo vim /etc/profile
+	将下面的代码插入保存即可
+
+
+	export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64  
+	export JRE_HOME=$JAVA_HOME/jre  
+	export CLASSPATH=$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH  
+	export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+
+
+3.检查是否成功配置环境变量
+	输入java或javac或java -version检测
