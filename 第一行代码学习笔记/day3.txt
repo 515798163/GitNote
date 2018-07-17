@@ -1,0 +1,33 @@
+1.主活动跳转到其他活动
+	Intent是Android程序中各组件之间进行交互的一种重要方式，它不仅可以指明当前组件想要执行的动作，还可以在不同组件之间传递数据。Intent一般可以用在启动活动，启动服务以及发送广播等场景。
+	
+	Intent大致可以分为两种，显示Intent和隐式Intent
+	
+	（1）显式Intent
+		Intent有多个构造函数的重载，其中一个是Intent(Context packageContext,Class<?> cls)。第一个参数Context要求提供一个启动活动的上下文，第二个参数Class则是指定想要启动的目标活动。
+		在Activity类中提供了一个startActivity()方法，这个方法是专门用于启动活动的，它接收一个Intent参数，将构建号的Intent传入startActivity()方法就可以启动目标活动了。
+		
+		Intent intent = new Intent(FirstActivity.this,SecondActivity.class);
+		首先构建出一个Intent，传入FirstActivity.this作为上下文，传入SecondActivity.class作为目标活动，这样意图就非常明显了，即在FirstActivity这个活动的基础上打开SecondActivity这个活动，然后通过startActivity()方法来执行这个Intent，因此叫做显式Intent
+		
+	（2）隐式Intent
+		相比于显式Intent，隐式Intent并不明确指出我们想要启动哪一个活动，而是指定了一系列更加抽象的action和category等信息，然后交由系统去分析这个Intent，并帮我们找出合适的活动去启动。
+		
+		通过<Activity>标签下配置<intent-filter>的内容，可以指定当前活动能够响应的action和category。
+		
+		<activity android:name=".SecondActivity">
+            <intent-filter>
+                <action android:name="com.example.activitytest.ACTION_START"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+		
+		<action>标签中指明了当前活动可以响应com.example.activitytest.ACTION_START这个action
+		<category>标签则包含了一些附加信息更精确地指明了当前活动能够响应的Intent中还可能带有的category
+		只有<action>和<category>中的内容同时能够匹配上Intent中指定的action和category时这个活动才能响应该Intent
+		
+		Intent intent = new Intent("com.example.activitytest.ACTION_START");
+		Intent的另一个构造方法，直接将action的字符串传了进去，表明我们想要启动能够响应com.example.activitytest.ACTION_START这个action的活动。因为android.intent.category.DEFAULT是一种默认的actegory，在调用startActivity()方法的时候会自动将这个category添加到Intent中。
+		
+		每个Intent中只能指定一个action，但却能指定多个actegory
+		

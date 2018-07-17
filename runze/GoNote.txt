@@ -1,0 +1,549 @@
+1.GOPATH环境变量有默认值，如果没有被设置，在Unix上默认为$HOME/go
+2.GOPATH下有三个子目录：src、bin、pkg
+src存放源代码：.go .c .h .s
+pkg存放编译生成后的文件：.a
+bin存放编译后的可执行文件
+3.go语言关键字
+break    default      func    interface    select
+case     defer        go      map          struct
+chan     else         goto    package      switch
+const    fallthrough  if      range        type
+continue for          import  return       var
+4.每一个可独立运行的Go程序，必定包含一个package main，在这个main包中必定包含一个入口函数main，而这个函数既没有参数，也没有返回值。
+5.除了main包之外，其它的包最后都会生成*.a文件（也就是包文件）并放置在$GOPATH/pkg/$GOOS_$GOARCH中（以Mac为例就是$GOPATH/pkg/darwin_amd64）。
+6.包名和包所在的文件夹名可以是不同的，此处的<pkgName>即为通过package <pkgName>声明的包名，而非文件夹名。
+7.定义变量
+	①/*
+		定义三个类型都是"type"的变量,并且分别初始化为相应的值
+		vname1为v1，vname2为v2，vname3为v3
+	*/
+	var vname1, vname2, vname3 type= v1, v2, v3
+	②var vname1, vname2, vname3 = v1, v2, v3
+	③vname1, vname2, vname3 := v1, v2, v3
+	④Go对于已声明但未使用的变量会在编译阶段报错
+8.常量
+语法如下：
+	const constantName = value
+	//如果需要，也可以明确指定常量的类型：
+	const Pi float32 = 3.1415926
+9.内置基础类型
+（1）Boolean类型
+	在Go中，布尔值的类型为bool，值是true或false，默认为false。
+
+	//示例代码
+	var isActive bool  // 全局变量声明
+	var enabled, disabled = true, false  // 忽略类型的声明
+	func test() {
+		var available bool  // 一般声明
+		valid := false      // 简短声明
+		available = true    // 赋值操作
+	}
+（2）数值类型
+	整数类型有无符号和带符号两种。Go同时支持int和uint，这两种类型的长度相同，但具体长度取决于不同编译器的实现。
+	Go里面也有直接定义好位数的类型：rune, int8, int16, int32, int64和byte, uint8, uint16, uint32, uint64。其中rune是int32的别称，byte是uint8的别称。
+	需要注意的一点是，这些类型的变量之间不允许互相赋值或操作，不然会在编译时引起编译器报错。
+	另外，尽管int的长度是32 bit, 但int 与 int32并不可以互用。
+	
+	浮点数的类型有float32和float64两种（没有double类型），默认是float64。
+
+	Go还支持复数类型。它的默认类型是complex128（64位实数+64位虚数）
+	复数的形式为RE + IMi，其中RE是实数部分，IM是虚数部分，而最后的i是虚数单位。下面是一个使用复数的例子：
+	var c complex64 = 5+5i
+	//output: (5+5i)
+	fmt.Printf("Value is: %v", c)
+
+	//输出	(5+5i)
+
+（3）字符串
+	
+	字符串是用一对双引号（""）或反引号（` `）括起来定义，它的类型是string。
+	//示例代码
+	var frenchHello string  // 声明变量为字符串的一般方法
+	var emptyString string = ""  // 声明了一个字符串变量，初始化为空字符串
+	func test() {
+		no, yes, maybe := "no", "yes", "maybe"  // 简短声明，同时声明多个变量
+		japaneseHello := "Konichiwa"  // 同上
+		frenchHello = "Bonjour"  // 常规赋值
+	}
+	
+	在Go中字符串是不可变的，例如下面的代码编译时会报错：cannot assign to s[0]
+	例如：
+	var s string = "hello"
+	s[0] = 'c'
+	会报错cannot assign to s[0]
+
+	修改方法：
+
+	s := "hello"
+	d := []byte(s)
+	d[0] = 'a'
+	s2 := string(d)
+	fmt.Printf("%s\n",s2)
+
+	Go中可以使用+操作符来连接两个字符串：
+	s := "hello"
+	s = "c" + s[1:] // 字符串虽不能更改，但可进行切片操作
+	fmt.Printf("%s\n", s)
+
+	如果要声明一个多行的字符串怎么办？可以通过`来声明：
+	m := `hello
+		world`
+	
+	输出
+		hello
+			world
+
+（4）错误类型
+	
+		Go的error是一个interface类型
+		这是每种类型对应的零值：
+		bool      -> false                              
+		numbers -> 0                                 
+		string    -> ""      
+
+		pointers -> nil
+		slices -> nil
+		maps -> nil
+		channels -> nil
+		functions -> nil
+		interfaces -> nil
+	因此，例子
+
+	err := errors.New("emit macho dwarf: elf header corrupted")
+	if err != nil {
+		fmt.Print(err)
+	}
+	输出
+		emit macho dwarf: elf header corrupted
+（5）小技巧
+	①分组声明
+	import "fmt"
+	import "os"
+
+	const i = 100
+	const pi = 3.1415
+	const prefix = "Go_"
+
+	var i int
+	var pi float32
+	var prefix string
+	可以分组写成如下形式：
+	import(
+		"fmt"
+		"os"
+	)
+
+	const(
+		i = 100
+		pi = 3.1415
+		prefix = "Go_"
+	)
+
+	var(
+		i int
+		pi float32
+		prefix string
+	)
+
+
+
+	②iota枚举
+	
+package main
+
+import (
+	"fmt"
+)
+
+const (
+	x = iota // x == 0
+	y = iota // y == 1
+	z = iota // z == 2
+	w        // 常量声明省略值时，默认和之前一个值的字面相同。这里隐式地说w = iota，因此w == 3。其实上面y和z可同样不用"= iota"
+)
+
+const v = iota // 每遇到一个const关键字，iota就会重置，此时v == 0
+
+const (
+	h, i, j = iota, iota, iota //h=0,i=0,j=0 iota在同一行值相同
+)
+
+const (
+	a       = iota //a=0
+	b       = "B"
+	c       = iota             //c=2
+	d, e, f = iota, iota, iota //d=3,e=3,f=3
+	g       = iota             //g = 4
+)
+
+func main() {
+	fmt.Println(a, b, c, d, e, f, g, h, i, j, x, y, z, w, v)
+}	
+
+输出：0 B 2 3 3 3 4 0 0 0 0 1 2 3 0
+
+（6）Go程序设计的规则
+
+	①Go之所以会那么简洁，是因为它有一些默认的行为：
+
+	    大写字母开头的变量是可导出的，也就是其它包可以读取的，是公有变量；小写字母开头的就是不可导出的，是私有变量。
+	    大写字母开头的函数也是一样，相当于class中的带public关键词的公有函数；小写字母开头的就是有private关键词的私有函数。
+
+（7）array、slice、map
+	
+	①array就是数组，它的定义方式如下：
+	var arr [n]type
+
+	var arr [10]int  // 声明了一个int类型的数组
+	arr[0] = 42      // 数组下标是从0开始的
+	arr[1] = 13      // 赋值操作
+	fmt.Printf("The first element is %d\n", arr[0])  // 获取数据，返回42
+	fmt.Printf("The last element is %d\n", arr[9]) //返回未赋值的最后一个元素，默认返回0
+
+	a := [3]int{1, 2, 3} // 声明了一个长度为3的int数组
+
+	b := [10]int{1, 2, 3} // 声明了一个长度为10的int数组，其中前三个元素初始化为1、2、3，其它默认为0
+
+	c := [...]int{4, 5, 6} // 可以省略长度而采用`...`的方式，Go会自动根据元素个数来计算长度
+
+
+
+
+	②Go支持嵌套数组，即多维数组。比如下面的代码就声明了一个二维数组：
+// 声明了一个二维数组，该数组以两个数组作为元素，其中每个数组中又有4个int类型的元素
+doubleArray := [2][4]int{[4]int{1, 2, 3, 4}, [4]int{5, 6, 7, 8}}
+
+// 上面的声明可以简化，直接忽略内部的类型
+easyArray := [2][4]int{{1, 2, 3, 4}, {5, 6, 7, 8}}
+
+同样可可以定义二维字符串
+s := [3][2]string{{"123","456"},{"789","101112"}}
+没有初始化的自动赋值为空字符串
+
+
+	③slice
+	在很多应用场景中，数组并不能满足我们的需求。在初始定义数组时，我们并不知道需要多大的数组，因此我们就需要“动态数组”。在Go里面这种数据结构叫slice
+	// 和声明array一样，只是少了长度
+	var fslice []int
+	例：
+	slice := []byte {'a', 'b', 'c', 'd'}
+
+
+slice可以从一个数组或一个已经存在的slice中再次声明。slice通过array[i:j]来获取，其中i是数组的开始位置，j是结束位置，但不包含array[j]，它的长度是j-i。
+// 声明一个含有10个元素元素类型为byte的数组
+var ar = [10]byte {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'}
+
+// 声明两个含有byte的slice
+var a, b []byte
+
+// a指向数组的第3个元素开始，并到第五个元素结束，
+a = ar[2:5]
+//现在a含有的元素: ar[2]、ar[3]和ar[4]
+
+// b是数组ar的另一个slice
+b = ar[3:5]
+// b的元素是：ar[3]和ar[4]
+
+
+slice有一些简便的操作
+
+    slice的默认开始位置是0，ar[:n]等价于ar[0:n]
+    slice的第二个序列默认是数组的长度，ar[n:]等价于ar[n:len(ar)]
+    如果从一个数组里面直接获取slice，可以这样ar[:]，因为默认第一个序列是0，第二个是数组的长度，即等价于ar[0:len(ar)]
+
+// 声明一个数组
+var array = [10]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'}
+// 声明两个slice
+var aSlice, bSlice []byte
+
+// 演示一些简便操作
+aSlice = array[:3] // 等价于aSlice = array[0:3] aSlice包含元素: a,b,c
+aSlice = array[5:] // 等价于aSlice = array[5:10] aSlice包含元素: f,g,h,i,j
+aSlice = array[:]  // 等价于aSlice = array[0:10] 这样aSlice包含了全部的元素
+
+// 从slice中获取slice
+aSlice = array[3:7]  // aSlice包含元素: d,e,f,g，len=4，cap=7
+bSlice = aSlice[1:3] // bSlice 包含aSlice[1], aSlice[2] 也就是含有: e,f
+bSlice = aSlice[:3]  // bSlice 包含 aSlice[0], aSlice[1], aSlice[2] 也就是含有: d,e,f
+bSlice = aSlice[0:5] // 对slice的slice可以在cap范围内扩展，此时bSlice包含：d,e,f,g,h
+bSlice = aSlice[:]   // bSlice包含所有aSlice的元素: d,e,f,g
+
+
+对于slice有几个有用的内置函数：
+
+    len 获取slice的长度
+    cap 获取slice的最大容量
+    append 向slice里面追加一个或者多个元素，然后返回一个和slice一样类型的slice	y=append(x,'a')在x的slice中追加'a'元素赋值给y
+注：append函数会改变slice所引用的数组的内容，从而影响到引用同一数组的其它slice。 但当slice中没有剩余空间（即(cap-len) == 0）时，此时将动态分配新的数组空间。返回的slice数组指针将指向这个空间，而原数组的内容将保持不变；其它引用此数组的slice则不受影响。
+    copy 函数copy从源slice的src中复制元素到目标dst，并且返回复制的元素的个数
+
+	④map
+
+	map也就是Python中字典的概念，它的格式为map[keyType]valueType
+
+// 声明一个key是字符串，值为int的字典,这种方式的声明需要在使用之前使用make初始化
+var numbers map[string]int
+// 另一种map的声明方式
+numbers = make(map[string]int)
+numbers["one"] = 1  //赋值
+numbers["ten"] = 10 //赋值
+numbers["three"] = 3
+
+fmt.Println("第三个数字是: ", numbers["three"]) // 读取数据
+// 打印出来如:第三个数字是: 3
+
+
+
+使用map过程中需要注意的几点：
+
+    map是无序的，每次打印出来的map都会不一样，它不能通过index获取，而必须通过key获取
+    map的长度是不固定的，也就是和slice一样，也是一种引用类型
+    内置的len函数同样适用于map，返回map拥有的key的数量
+    map的值可以很方便的修改，通过numbers["one"]=11可以很容易的把key为one的字典值改为11
+    map和其他基本型别不同，它不是thread-safe，在多个go-routine存取时，必须使用mutex lock机制
+
+map的初始化可以通过key:val的方式初始化值，同时map内置有判断是否存在key的方式
+
+例：
+rating := map[string]float32{"C":5, "Go":4.5, "Python":4.5, "C++":2 }
+// map有两个返回值，第二个返回值，如果不存在key，那么ok为false，如果存在ok为true
+csharpRating, ok := rating["C#"]
+
+	⑤make、new操作
+
+new返回指针。make返回初始化后的（非零）值。
+
+部分类型的零值：
+int     0
+int8    0
+int32   0
+int64   0
+uint    0x0
+rune    0 //rune的实际类型是 int32
+byte    0x0 // byte的实际类型是 uint8
+float32 0 //长度为 4 byte
+float64 0 //长度为 8 byte
+bool    false
+string  ""
+
+
+10.流程控制
+
+（1）if
+与Python差不多，拓展的是，在条件判断语句里面允许声明一个变量，这个变量的作用域只能在该条件逻辑块内，其他地方就不起作用了。
+（2）goto
+
+用goto跳转到必须在当前函数内定义的标签。
+
+func myFunc() {
+	i := 0
+Here:   //这行的第一个词，以冒号结束作为标签
+	println(i)
+	i++
+	goto Here   //跳转到Here去
+}
+
+标签名是大小写敏感的。
+（3）for
+例1：
+package main
+
+import "fmt"
+
+func main(){
+	sum := 0;
+	for index:=0; index < 10 ; index++ {
+		sum += index
+	}
+	fmt.Println("sum is equal to ", sum)
+}
+// 输出：sum is equal to 45
+
+例2：与while类似
+sum := 1
+for sum < 1000 {
+	sum += sum
+}
+
+例3：在循环里面有两个关键操作break和continue	,break操作是跳出当前循环，continue是跳过本次循环。当嵌套过深的时候，break可以配合标签使用，即跳转至标签所指定的位置
+for index := 10; index>0; index-- {
+	if index == 5{
+		break // 或者continue
+	}
+	fmt.Println(index)
+}
+// break打印出来10、9、8、7、6
+// continue打印出来10、9、8、7、6、4、3、2、1
+
+例4：for配合range可以用于读取slice和map的数据：
+//rating是定义好的一个map
+for k,v:= range rating {
+	fmt.Println("map's key:",k)
+	fmt.Println("map's val:",v)
+}
+怎么只获取值而不获取键？直接v:=range rating?这个方法不可取，因为 Go 支持 “多值返回”, 而对于“声明而未被调用”的变量, 编译器会报错, 在这种情况下, 可以使用_来丢弃不需要的返回值 例如：
+for _, v := range rating{
+	fmt.Println("map's val:", v)
+}
+
+（4）switch
+switch sExpr {
+case expr1:
+	some instructions
+case expr2:
+	some other instructions
+case expr3:
+	some other instructions
+default:
+	other code
+}
+
+例1：
+i := 10
+switch i {
+case 1:
+	fmt.Println("i is equal to 1")
+case 2, 3, 4:
+	fmt.Println("i is equal to 2, 3 or 4")
+case 10:
+	fmt.Println("i is equal to 10")
+default:
+	fmt.Println("All I know is that i is an integer")
+}
+在第5行中，我们把很多值聚合在了一个case里面
+
+例2：Go里面switch默认相当于每个case最后带有break，匹配成功后不会自动向下执行其他case，而是跳出整个switch, 但是可以使用fallthrough强制执行后面的case代码。
+integer := 6
+switch integer {
+case 4:
+	fmt.Println("The integer was <= 4")
+	fallthrough
+case 5:
+	fmt.Println("The integer was <= 5")
+	fallthrough
+case 6:
+	fmt.Println("The integer was <= 6")
+	fallthrough
+case 7:
+	fmt.Println("The integer was <= 7")
+	fallthrough
+case 8:
+	fmt.Println("The integer was <= 8")
+	fallthrough
+default:
+	fmt.Println("default case")
+}
+
+
+11.函数
+①格式如下：
+func funcName(input1 type1, input2 type2) (output1 type1, output2 type2) {
+	//这里是处理逻辑代码
+	//返回多个值
+	return value1, value2
+}
+
+上面的代码我们看出
+
+    关键字func用来声明一个函数funcName
+    函数可以有一个或者多个参数，每个参数后面带有类型，通过,分隔
+    函数可以返回多个值
+    上面返回值声明了两个变量output1和output2，如果你不想声明也可以，直接就两个类型
+    如果只有一个返回值且不声明返回值变量，那么你可以省略 包括返回值 的括号
+    如果没有返回值，那么就直接省略最后的返回信息
+    如果有返回值， 那么必须在函数的外层添加return语句
+例1：单个返回值
+package main
+
+import "fmt"
+
+func max(a,b int)(int){
+	if a>b{
+		return a
+	}
+	return b
+
+}
+func main() {
+	x := 5
+	y := 6
+	z := max(x,y)
+	fmt.Printf("%d\n",z)
+}
+
+例2：多个返回值
+package main
+
+import "fmt"
+
+//返回 A+B 和 A*B
+func SumAndProduct(A, B int) (int, int) {
+	return A+B, A*B
+}
+
+func main() {
+	x := 3
+	y := 4
+
+	xPLUSy, xTIMESy := SumAndProduct(x, y)
+
+	fmt.Printf("%d + %d = %d\n", x, y, xPLUSy)
+	fmt.Printf("%d * %d = %d\n", x, y, xTIMESy)
+}
+例3：当然我们也可以命名返回参数的变量，这个例子里面只是用了两个类型，我们也可以改成如下这样的定义，然后返回的时候不用带上变量名，因为直接在函数里面初始化了。但如果你的函数是导出的(首字母大写)，官方建议：最好命名返回值，因为不命名返回值，虽然使得代码更加简洁了，但是会造成生成的文档可读性差。
+func SumAndProduct(A, B int) (add int, Multiplied int) {
+	add = A+B
+	Multiplied = A*B
+	return
+}
+
+例4：变参。Go函数支持变参。接受变参的函数是有着不定数量的参数的。为了做到这点，首先需要定义函数使其接受变参：
+func myfunc(arg ...int) {}
+
+例5：传值与指针
+package main
+
+import "fmt"
+
+//简单的一个函数，实现了参数+1的操作
+func add1(a *int) int { // 请注意，
+	*a = *a+1 // 修改了a的值
+	return *a // 返回新值
+}
+
+func main() {
+	x := 3
+
+	fmt.Println("x = ", x)  // 应该输出 "x = 3"
+
+	x1 := add1(&x)  // 调用 add1(&x) 传x的地址
+
+	fmt.Println("x+1 = ", x1) // 应该输出 "x+1 = 4"
+	fmt.Println("x = ", x)    // 应该输出 "x = 4"
+}
+
+那么到底传指针有什么好处呢？
+
+    传指针使得多个函数能操作同一个对象。
+    传指针比较轻量级 (8bytes),只是传内存地址，我们可以用指针传递体积大的结构体。如果用参数值传递的话, 在每次copy上面就会花费相对较多的系统开销（内存和时间）。所以当你要传递大的结构体的时候，用指针是一个明智的选择。
+    Go语言中channel，slice，map这三种类型的实现机制类似指针，所以可以直接传递，而不用取地址后传递指针。（注：若函数需改变slice的长度，则仍需要取地址传递指针）
+
+12.
+13.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
